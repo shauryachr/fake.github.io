@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Registration — Liquid Glass UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:         #c9a84c;
+    --gold-light:   #e8cc80;
+    --black:        #060606;
+    --glass-border: rgba(201,168,76,0.22);
+    --text-muted:   rgba(201,168,76,0.42);
+    --text-body:    rgba(210,185,130,0.55);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px;
+    pointer-events: none; z-index: 0; opacity: 0.55;
+  }
+
+  /* Ambient glows */
+  .ambient { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+  .ambient-1 {
+    width: 700px; height: 700px; top: -200px; left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+  }
+  .ambient-2 {
+    width: 400px; height: 400px; bottom: 0; left: 10%;
+    background: radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%);
+  }
+
+  /* Hairlines */
+  .hairline { position: fixed; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.1) 20%, rgba(201,168,76,0.1) 80%, transparent 100%); z-index: 1; pointer-events: none; }
+  .hairline.top    { top: 0; }
+  .hairline.bottom { bottom: 0; }
+
+  /* Page */
+  .page { position: relative; z-index: 2; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+
+  /* Nav */
+  nav {
+    padding: 28px 48px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    animation: fadeDown 0.8s ease both;
+  }
+  .nav-mark { display: flex; align-items: center; gap: 10px; }
+  .nav-diamond { width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 10px rgba(201,168,76,0.6); }
+  .nav-label { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-muted); font-weight: 400; }
+  .nav-tag { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(201,168,76,0.3); border: 1px solid rgba(201,168,76,0.15); padding: 5px 12px; border-radius: 20px; }
+
+  /* Hero */
+  .hero { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 32px 60px; }
+
+  .hero-eyebrow {
+    font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 28px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after { content: ''; display: block; width: 32px; height: 1px; background: rgba(201,168,76,0.3); }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300;
+    font-size: clamp(42px, 7vw, 80px); line-height: 1.05;
+    letter-spacing: -0.01em; color: var(--gold-light); margin-bottom: 10px;
+    animation: fadeUp 0.9s 0.2s ease both;
+  }
+  h1 em { font-style: italic; color: rgba(232,204,128,0.55); }
+
+  .hero-desc {
+    max-width: 480px; font-size: 14px; font-weight: 300; line-height: 1.8;
+    color: var(--text-body); margin: 28px 0 48px;
+    animation: fadeUp 0.9s 0.3s ease both;
+  }
+
+  /* CTA */
+  .cta-wrap { animation: fadeUp 0.9s 0.4s ease both; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+  .btn-cta {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 15px 36px; border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 400;
+    letter-spacing: 0.22em; text-transform: uppercase; cursor: pointer;
+    background: linear-gradient(135deg, #b8922e 0%, #e8cc80 50%, #b8922e 100%);
+    color: #080500; position: relative; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(201,168,76,0.3), 0 4px 32px rgba(201,168,76,0.22), inset 0 1px 0 rgba(255,255,255,0.25);
+    transition: all 0.3s ease;
+  }
+  .btn-cta::after { content: ''; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.6s ease; }
+  .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px rgba(201,168,76,0.45), 0 8px 40px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.3); }
+  .btn-cta:hover::after { left: 160%; }
+  .btn-cta:active { transform: translateY(0); }
+  .btn-arrow { width: 16px; height: 16px; opacity: 0.7; transition: transform 0.25s ease; }
+  .btn-cta:hover .btn-arrow { transform: translateX(3px); }
+
+  /* Features */
+  .features {
+    margin: 60px auto 0; max-width: 680px; width: 100%;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.1); border-radius: 14px; overflow: hidden;
+    animation: fadeUp 0.9s 0.5s ease both;
+  }
+  .feature { background: var(--black); padding: 24px 22px; display: flex; flex-direction: column; gap: 8px; transition: background 0.25s ease; }
+  .feature:hover { background: rgba(201,168,76,0.04); }
+  .feature-icon { font-size: 18px; line-height: 1; margin-bottom: 4px; opacity: 0.75; color: var(--gold-light); }
+  .feature-title { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232,204,128,0.65); font-weight: 400; }
+  .feature-body  { font-size: 12px; font-weight: 300; line-height: 1.6; color: rgba(201,168,76,0.38); }
+
+  /* Footer */
+  footer { padding: 24px 48px; border-top: 1px solid rgba(201,168,76,0.08); display: flex; align-items: center; justify-content: space-between; animation: fadeUp 0.8s 0.6s ease both; }
+  .footer-text { font-size: 11px; letter-spacing: 0.1em; color: rgba(201,168,76,0.22); font-weight: 300; }
+  .footer-dots { display: flex; gap: 6px; align-items: center; }
+  .footer-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(201,168,76,0.25); }
+  .footer-dot.active { background: rgba(201,168,76,0.55); }
+
+  /* ══════════════════════════
+     MODAL
+  ══════════════════════════ */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    background: rgba(4,3,2,0.8);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .card {
+    position: relative; width: 100%; max-width: 360px;
+    padding: 44px 38px 40px; border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+    border: 1px solid rgba(201,168,76,0.28);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 24px 64px rgba(0,0,0,0.85), inset 0 1px 0 rgba(201,168,76,0.2), inset 0 -1px 0 rgba(0,0,0,0.4);
+    transform: translateY(28px) scale(0.96);
+    transition: transform 0.45s cubic-bezier(.22,1,.36,1), opacity 0.35s ease;
+    opacity: 0;
+  }
+  .modal-overlay.open .card { transform: translateY(0) scale(1); opacity: 1; }
+
+  /* Card top sheen */
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.55), transparent);
+  }
+  /* Card inner glow */
+  .card::after {
+    content: ''; position: absolute; inset: 0; border-radius: 20px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .modal-close {
+    position: absolute; top: 16px; right: 18px; z-index: 2;
+    background: none; border: none; cursor: pointer;
+    color: rgba(201,168,76,0.3); font-size: 16px; line-height: 1;
+    padding: 4px; transition: color 0.2s ease;
+  }
+  .modal-close:hover { color: rgba(201,168,76,0.7); }
+
+  .card h2 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300;
+    font-size: 26px; letter-spacing: 0.06em;
+    color: var(--gold-light); margin-bottom: 6px; text-align: center;
+  }
+  .card-sub { font-size: 11px; font-weight: 300; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); text-align: center; margin-bottom: 30px; }
+
+  .ornament { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .ornament-line { flex: 1; height: 1px; background: var(--glass-border); }
+  .ornament-diamond { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); opacity: 0.7; }
+
+  .field { margin-bottom: 15px; }
+  label { display: block; font-size: 10px; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+  input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: rgba(201,168,76,0.06);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 300;
+    color: var(--gold-light); outline: none;
+    transition: all 0.25s ease; caret-color: var(--gold);
+  }
+  input::placeholder { color: rgba(201,168,76,0.22); }
+  input:focus { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.09); box-shadow: 0 0 0 3px rgba(201,168,76,0.08); }
+
+  .btn-submit {
+    width: 100%; padding: 13px; margin-top: 8px; border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 400;
+    letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #b8922e 0%, #e8cc80 50%, #b8922e 100%);
+    color: #0a0800;
+    box-shadow: 0 2px 20px rgba(201,168,76,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: all 0.25s ease;
+  }
+  .btn-submit::after { content: ''; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.55s ease; }
+  .btn-submit:hover { box-shadow: 0 4px 28px rgba(201,168,76,0.4), inset 0 1px 0 rgba(255,255,255,0.25); transform: translateY(-1px); }
+  .btn-submit:hover::after { left: 160%; }
+  .btn-submit:active { transform: translateY(0); }
+
+  .row-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; }
+  .row-divider-line { flex: 1; height: 1px; background: rgba(201,168,76,0.14); }
+  .row-divider-text { font-size: 10px; letter-spacing: 0.15em; color: var(--text-muted); }
+
+  .btn-auto {
+    width: 100%; padding: 12px; border: 1px solid rgba(201,168,76,0.22); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 300;
+    letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+    background: rgba(201,168,76,0.04); color: rgba(201,168,76,0.6);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.25s ease;
+  }
+  .btn-auto:hover { background: rgba(201,168,76,0.09); border-color: rgba(201,168,76,0.4); color: var(--gold-light); }
+  .btn-auto:disabled { opacity: 0.45; cursor: default; }
+
+  .spinner { width: 11px; height: 11px; border: 1.5px solid rgba(201,168,76,0.25); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.75s linear infinite; display: none; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: rgba(10,8,3,0.92); backdrop-filter: blur(16px);
+    border: 1px solid rgba(201,168,76,0.25); color: var(--gold-light);
+    padding: 10px 22px; border-radius: 8px;
+    font-size: 12px; letter-spacing: 0.08em;
+    opacity: 0; transition: all 0.35s cubic-bezier(.22,1,.36,1);
+    pointer-events: none; white-space: nowrap; z-index: 300;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Keyframes */
+  @keyframes fadeUp   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    nav { padding: 20px 24px; }
+    .hero { padding: 60px 24px 40px; }
+    .features { grid-template-columns: 1fr; margin: 40px 24px 0; }
+    footer { padding: 20px 24px; flex-direction: column; gap: 12px; text-align: center; }
+    .card { padding: 36px 26px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="hairline top"></div>
+<div class="hairline bottom"></div>
+
+<!-- Landing page -->
+<div class="page">
+
+  <nav>
+    <div class="nav-mark">
+      <div class="nav-diamond"></div>
+      <span class="nav-label">Account Registration</span>
+    </div>
+    <span class="nav-tag">UI Demo</span>
+  </nav>
+
+  <main class="hero">
+    <div class="hero-eyebrow">Liquid Glass Interface</div>
+
+    <h1>A sign-up form<br><em>built differently</em></h1>
+
+    <p class="hero-desc">
+      A minimal account registration form built with a liquid glass aesthetic —
+      dark background, gold accents, frosted blur surfaces, and a live
+      auto-fill feature powered by the RandomUser API.
+      No frameworks. Pure HTML, CSS, and JavaScript.
+    </p>
+
+    <div class="cta-wrap">
+      <button class="btn-cta" onclick="openModal()">
+        Open Registration Form
+        <svg class="btn-arrow" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">◈</div>
+        <div class="feature-title">Liquid Glass</div>
+        <div class="feature-body">Frosted backdrop blur with layered gold borders and inset glows.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⟳</div>
+        <div class="feature-title">Auto-fill API</div>
+        <div class="feature-body">Fetches real random user data from randomuser.me and populates the form instantly.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">◻</div>
+        <div class="feature-title">Zero Dependencies</div>
+        <div class="feature-body">No libraries, no build tools. One HTML file, fully self-contained.</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span class="footer-text">Single file · No dependencies</span>
+    <div class="footer-dots">
+      <div class="footer-dot active"></div>
+      <div class="footer-dot active"></div>
+    </div>
+    <span class="footer-text">Pure HTML · CSS · JS</span>
+  </footer>
+
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
+  <div class="card">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <h2>Create Account</h2>
+    <p class="card-sub">Enter your details to continue</p>
+
+    <div class="ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line"></div>
+    </div>
+
+    <div class="field">
+      <label for="user-email">Email Address</label>
+      <input type="email" id="user-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="user-password">Password</label>
+      <input type="password" id="user-password" placeholder="Create a password">
+    </div>
+
+    <button class="btn-submit" onclick="handleSubmit()">Continue</button>
+
+    <div class="row-divider">
+      <div class="row-divider-line"></div>
+      <span class="row-divider-text">or</span>
+      <div class="row-divider-line"></div>
+    </div>
+
+    <button class="btn-auto" id="fill-btn" onclick="autoFill()">
+      <div class="spinner" id="spinner"></div>
+      <span id="fill-label">Auto-fill via RandomUser API</span>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const modal      = document.getElementById('modal');
+  const emailInput = document.getElementById('user-email');
+  const passInput  = document.getElementById('user-password');
+  const fillBtn    = document.getElementById('fill-btn');
+  const spinner    = document.getElementById('spinner');
+  const fillLabel  = document.getElementById('fill-label');
+  const toast      = document.getElementById('toast');
+
+  function openModal() {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function handleOverlayClick(e) {
+    if (e.target === modal) closeModal();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+
+  function handleSubmit() {
+    const email = emailInput.value.trim();
+    const pass  = passInput.value.trim();
+    if (!email || !pass) { showToast('Please fill in all fields.'); return; }
+    showToast('Registered — ' + email);
+    console.log('Submitted:', { email, password: pass });
+  }
+
+  function autoFill() {
+    fillBtn.disabled = true;
+    spinner.style.display = 'block';
+    fillLabel.textContent = 'Fetching…';
+
+    fetch('https://randomuser.me/api/')
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        emailInput.value = data.results[0].email;
+        passInput.value  = data.results[0].login.password;
+        showToast('Fields filled successfully.');
+      })
+      .catch(() => showToast('Connection error — try again.'))
+      .finally(() => {
+        fillBtn.disabled = false;
+        spinner.style.display = 'none';
+        fillLabel.textContent = 'Auto-fill via RandomUser API';
+      });
+  }
+</script>
+</body>
+</html>
