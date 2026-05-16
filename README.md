@@ -1,1 +1,1 @@
-shauryachr.github.io/fake
+https://shauryachr.github.io/fake
